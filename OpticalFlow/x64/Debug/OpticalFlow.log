@@ -1,0 +1,26 @@
+﻿生成启动时间为 2016/4/19 18:37:14。
+     1>项目“Q:\CSharpProject\OpticalFlow\OpticalFlow\OpticalFlow.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /IQ:\CSharpProject\OpticalFlow\FreeImage\x64 /ZI /nologo /W3 /WX- /sdl /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt OpticalFlow.cpp stdafx.cpp
+     1>cl : 命令行 warning D9038: 此平台上不支持 /ZI；请启用 /Zi
+     1>cl : 命令行 warning D9007: “/Gm”需要“/Zi”；选项被忽略
+         OpticalFlow.cpp
+     1>q:\csharpproject\opticalflow\opticalflow\FreeImage.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+     1>OpticalFlow.cpp(132): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>OpticalFlow.cpp(133): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>OpticalFlow.cpp(141): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>OpticalFlow.cpp(142): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>OpticalFlow.cpp(186): warning C4129: “C”: 不可识别的字符转义序列
+     1>OpticalFlow.cpp(186): warning C4129: “O”: 不可识别的字符转义序列
+     1>OpticalFlow.cpp(186): warning C4129: “c”: 不可识别的字符转义序列
+         stdafx.cpp
+         正在生成代码...
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"Q:\CSharpProject\OpticalFlow\x64\Debug\OpticalFlow.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\opencv\build\x64\vc12\lib /LIBPATH:Q:\CSharpProject\OpticalFlow\FreeImage\x64 FreeImage.lib opencv_ml2410d.lib opencv_calib3d2410d.lib opencv_contrib2410d.lib opencv_core2410d.lib opencv_features2d2410d.lib opencv_flann2410d.lib opencv_gpu2410d.lib opencv_highgui2410d.lib opencv_imgproc2410d.lib opencv_legacy2410d.lib opencv_objdetect2410d.lib opencv_ts2410d.lib opencv_video2410d.lib opencv_nonfree2410d.lib opencv_ocl2410d.lib opencv_photo2410d.lib opencv_stitching2410d.lib opencv_superres2410d.lib opencv_videostab2410d.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Q:\CSharpProject\OpticalFlow\x64\Debug\OpticalFlow.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Q:\CSharpProject\OpticalFlow\x64\Debug\OpticalFlow.lib" /MACHINE:X64 x64\Debug\OpticalFlow.obj
+         x64\Debug\stdafx.obj
+         OpticalFlow.vcxproj -> Q:\CSharpProject\OpticalFlow\x64\Debug\OpticalFlow.exe
+     1>已完成生成项目“Q:\CSharpProject\OpticalFlow\OpticalFlow\OpticalFlow.vcxproj”(Build 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:01.60

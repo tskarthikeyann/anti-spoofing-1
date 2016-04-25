@@ -1,0 +1,496 @@
+#include <iostream>  
+#include "highgui.h"
+#include "opencv2/opencv.hpp"  
+#include"string"
+//#include"FreeImage.h"
+
+using namespace cv;
+using namespace std;
+
+#define UNKNOWN_FLOW_THRESH 1e9 
+const char* face_cascade_name = "d:\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt2.xml";
+CascadeClassifier face_cascade;
+string window_name = "人脸识别";
+//IplImage*  gif2ipl(const char* filename)
+//{
+//	FreeImage_Initialise();        
+//	
+//	//load the FreeImage function lib  
+//	FREE_IMAGE_FORMAT fif = FIF_GIF;
+//	FIBITMAP* fiBmp = FreeImage_Load(fif, filename, GIF_DEFAULT);
+//	FIMULTIBITMAP * pGIF = FreeImage_OpenMultiBitmap(fif, filename, 0, 1, 0, GIF_PLAYBACK);
+//	//  FIBITMAPINFO fiBmpInfo = getfiBmpInfo(fiBmp);  
+//	int gifImgCnt = FreeImage_GetPageCount(pGIF);
+//	FIBITMAP * pFrame;
+//	int width, height;
+//	width = FreeImage_GetWidth(fiBmp);
+//	height = FreeImage_GetHeight(fiBmp);
+//	IplImage * iplImg = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
+//	iplImg->origin = 1;
+//	
+//	//should set to 1-top-left structure(Windows bitmap style)  
+//	RGBQUAD* ptrPalette = new RGBQUAD; 
+//	
+//	// = FreeImage_GetPalette(fiBmp);  
+//	BYTE intens;
+//	BYTE* pIntensity = &intens;
+//	cvNamedWindow("gif", 0);
+//	printf("gifImgCnt %d \n", gifImgCnt);
+//	for (int curFrame = 0; curFrame<gifImgCnt; curFrame++)
+//	{
+//		pFrame = FreeImage_LockPage(pGIF, curFrame);
+//		//ptrPalette = FreeImage_GetPalette(pFrame);  
+//		char * ptrImgDataPerLine;
+//		for (int i = 0; i<height; i++)
+//		{
+//			ptrImgDataPerLine = iplImg->imageData + i*iplImg->widthStep;
+//			for (int j = 0; j<width; j++)
+//			{
+//				//get the pixel index   
+//				//FreeImage_GetPixelIndex(pFrame,j,i,pIntensity);    
+//				FreeImage_GetPixelColor(pFrame, j, i, ptrPalette);
+//				ptrImgDataPerLine[3 * j] = ptrPalette->rgbBlue;
+//				ptrImgDataPerLine[3 * j + 1] = ptrPalette->rgbGreen;
+//				ptrImgDataPerLine[3 * j + 2] = ptrPalette->rgbRed;
+//				//ptrImgDataPerLine[3*j] = ptrPalette[intens].rgbBlue;  
+//				//ptrImgDataPerLine[3*j+1] = ptrPalette[intens].rgbGreen;  
+//				//ptrImgDataPerLine[3*j+2] = ptrPalette[intens].rgbRed;  
+//			}
+//		}
+//
+//		printf("convert curFrame end %d \n", curFrame);
+//		cvShowImage("gif", iplImg);
+//		cvWaitKey(30);
+//		FreeImage_UnlockPage(pGIF, pFrame, 1);
+//	}
+//	FreeImage_Unload(fiBmp);
+//	FreeImage_DeInitialise();
+//	return iplImg;
+//}
+
+//void readGif(char * path){
+//
+//	IplImage* iplImg = gif2ipl(path);
+//	cvReleaseImage(&iplImg);
+//
+//}
+
+void resizePic(Mat & image, CvSize size){
+
+	IplImage faceImage = IplImage(image);
+	IplImage * resizedImage;
+	resizedImage = cvCreateImage(size, IPL_DEPTH_8U, 3);
+	cvResize(&faceImage, resizedImage, CV_INTER_LINEAR);
+	image = Mat(resizedImage);
+}
+
+bool detectFace(Mat frame, Mat & dectedFace){
+	std::vector<Rect>facesRect;
+	std::vector<Mat> facesMat;
+	bool isFaceGet = 0;
+
+	Mat frame_gray;
+
+	//转化为灰度图
+	cvtColor(frame, frame_gray, CV_BGR2GRAY);
+
+	//均衡化
+	equalizeHist(frame_gray, frame_gray);
+
+	//
+	face_cascade.detectMultiScale(frame_gray, facesRect, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(60, 60), Size(600, 600));
+
+	//todo:test
+	imwrite("graytest.jpg", frame_gray);
+
+	if (facesRect.size() > 0){
+
+		//todo:extract the bigest face
+		// get face region
+		dectedFace = frame(facesRect[0]);
+
+		//resizeImage
+		IplImage faceImage = IplImage(dectedFace);
+		IplImage * resizedImage;
+		resizedImage = cvCreateImage(cvSize(100, 100), IPL_DEPTH_8U, 3);
+		cvResize(&faceImage, resizedImage, CV_INTER_LINEAR);
+		dectedFace = Mat(resizedImage);
+		isFaceGet = 1;
+
+		//todo for testing
+		imwrite("detected.jpg", dectedFace);
+	}
+
+	return isFaceGet;
+
+}
+
+void makecolorwheel(vector<Scalar> &colorwheel)
+{
+	int RY = 15;
+	int YG = 6;
+	int GC = 4;
+	int CB = 11;
+	int BM = 13;
+	int MR = 6;
+
+	int i;
+
+	for (i = 0; i < RY; i++) colorwheel.push_back(Scalar(255, 255 * i / RY, 0));
+	for (i = 0; i < YG; i++) colorwheel.push_back(Scalar(255 - 255 * i / YG, 255, 0));
+	for (i = 0; i < GC; i++) colorwheel.push_back(Scalar(0, 255, 255 * i / GC));
+	for (i = 0; i < CB; i++) colorwheel.push_back(Scalar(0, 255 - 255 * i / CB, 255));
+	for (i = 0; i < BM; i++) colorwheel.push_back(Scalar(255 * i / BM, 0, 255));
+	for (i = 0; i < MR; i++) colorwheel.push_back(Scalar(255, 0, 255 - 255 * i / MR));
+}
+
+void motionToColor(Mat flow, Mat &color)
+{
+	if (color.empty())
+		color.create(flow.rows, flow.cols, CV_8UC3);
+
+	static vector<Scalar> colorwheel; //Scalar r,g,b  
+	if (colorwheel.empty())
+		makecolorwheel(colorwheel);
+
+	// determine motion range:  
+	float maxrad = -1;
+
+	// Find max flow to normalize fx and fy  
+	for (int i = 0; i < flow.rows; ++i)
+	{
+		for (int j = 0; j < flow.cols; ++j)
+		{
+			Vec2f flow_at_point = flow.at<Vec2f>(i, j);
+			float fx = flow_at_point[0];
+			float fy = flow_at_point[1];
+			if ((fabs(fx) >  UNKNOWN_FLOW_THRESH) || (fabs(fy) >  UNKNOWN_FLOW_THRESH))
+				continue;
+			float rad = sqrt(fx * fx + fy * fy);
+			maxrad = maxrad > rad ? maxrad : rad;
+		}
+	}
+
+	for (int i = 0; i < flow.rows; ++i)
+	{
+		for (int j = 0; j < flow.cols; ++j)
+		{
+			uchar *data = color.data + color.step[0] * i + color.step[1] * j;
+			Vec2f flow_at_point = flow.at<Vec2f>(i, j);
+
+			//normalize the distance
+			float fx = flow_at_point[0] / maxrad;
+			float fy = flow_at_point[1] / maxrad;
+			if ((fabs(fx) >  UNKNOWN_FLOW_THRESH) || (fabs(fy) >  UNKNOWN_FLOW_THRESH))
+			{
+				data[0] = data[1] = data[2] = 0;
+				continue;
+			}
+			float rad = sqrt(fx * fx + fy * fy);
+
+			float angle = atan2(-fy, -fx) / CV_PI;
+			float fk = (angle + 1.0) / 2.0 * (colorwheel.size() - 1);
+			int k0 = (int)fk;
+			int k1 = (k0 + 1) % colorwheel.size();
+			float f = fk - k0;
+			//f = 0; // uncomment to see original color wheel  
+
+			for (int b = 0; b < 3; b++)
+			{
+				float col0 = colorwheel[k0][b] / 255.0;
+				float col1 = colorwheel[k1][b] / 255.0;
+				float col = (1 - f) * col0 + f * col1;
+				if (rad <= 1)
+					col = 1 - rad * (1 - col); // increase saturation with radius  
+				else
+					col *= .75; // out of range  
+				data[2 - b] = (int)(255.0 * col);
+			}
+		}
+	}
+}
+
+void getOFBetween2Frames(Mat frame1, Mat frame2, Mat & outColoredMotion){
+
+	Mat grayed_frame1, grayed_frame2, motion;
+	try{
+		cvtColor(frame1, grayed_frame1, CV_BGR2GRAY);
+		if (frame1.empty()) return;
+
+		cvtColor(frame2, grayed_frame2, CV_BGR2GRAY);
+		if (frame2.empty()) return;
+
+		calcOpticalFlowFarneback(grayed_frame1, grayed_frame2, motion, 0.5, 3, 15, 3, 5, 1.2, 0);
+		motionToColor(motion, outColoredMotion);
+
+	}
+	catch (const char * ex){
+
+		cout << ex << endl;
+	}
+
+}
+
+void getAverageOFM(vector<Mat>opticalFlowFrames, Mat & averageFrame){
+	try{
+		averageFrame=cvCreateImage(opticalFlowFrames[0].size(), IPL_DEPTH_8U, 1);
+		
+		averageFrame = averageFrame * 0;
+
+	/*	for (int i = 0; i < opticalFlowFrames.size(); i++){
+
+			averageFrame = averageFrame + opticalFlowFrames[i];
+		}	*/	
+
+		//averageFrame = averageFrame / opticalFlowFrames.size();
+
+		for (int i = 0; i < averageFrame.rows; i++){
+
+			//const Vec3b* Mpoint = averageFrame.ptr <Vec3b>(i);
+
+			for (int j = 0; j < averageFrame.cols; j++){
+
+				//Vec3b intensity = *(Mpoint + j);
+				//cout << "r" << (int)intensity[2] << "g" << (int)intensity[1] << "b" << (int)intensity[0] << endl;
+				int total = 0;
+				for (int tmpIndex = 0; tmpIndex < opticalFlowFrames.size(); tmpIndex++){
+					
+					const Vec3b* Mpoint = opticalFlowFrames[tmpIndex].ptr <Vec3b>(i);
+					Vec3b intensity = *(Mpoint + j);
+					
+					cout << "r" << (int)intensity[2] << "g" << (int)intensity[1] << "b" << intensity[0] << endl;
+					//total 
+
+					
+					for (int i = 0; i < opticalFlowFrames[tmpIndex].rows; i++){
+
+						//todo:for testing
+						//imwrite("testof.jpg", opticalFlowFrames[tmpIndex]);
+
+						const Vec3b* Mpoint = opticalFlowFrames[tmpIndex].ptr <Vec3b>(i);
+
+						for (int j = 0; j < opticalFlowFrames[tmpIndex].cols; j++){
+
+							Vec3b intensity = *(Mpoint + j);
+							cout << "r" << (int)intensity[2] << "g" << (int)intensity[1] << "b" << (int)intensity[0] << endl;
+						}
+					}
+
+				}
+
+			}
+		}
+	}
+	catch (const char * ex){
+
+		cout << ex << endl;
+	}
+}
+
+int main(int, char**)
+{
+	/*char * gifPath = "Q:\CSharpProject\OpticalFlow\OpticalFlow\car_input.gif";
+	readGif(gifPath);
+	*/
+	try{
+		// read frame from pic file
+		//const char* path1 = "Q:/CSharpProject/OpticalFlow/OpticalFlow/car1.jpg";
+		//const char* path2 = "Q:/CSharpProject/OpticalFlow/OpticalFlow/car2.jpg";
+
+		////从文件中读入图像
+		//Mat img1 = imread(path1, CV_LOAD_IMAGE_UNCHANGED);
+		//if (img1.empty()) return -1;
+
+		//Mat img2 = imread(path2, CV_LOAD_IMAGE_UNCHANGED);
+		//if (img2.empty()) return -1;
+
+		int framesToGet = 8;
+		//load face detector
+		face_cascade.load(face_cascade_name);
+
+		// read frame form video
+		CvCapture* cap = cvCaptureFromFile("../Video/2fliped.wmv");
+		
+		//CvCapture* cap = cvCreateCameraCapture(0);
+		int numFrames = (int)cvGetCaptureProperty(cap, CV_CAP_PROP_FRAME_COUNT);
+		int fps = (int)cvGetCaptureProperty(cap, CV_CAP_PROP_FPS);
+
+		//extract 4 frames per second
+		int duration_frame = (float)fps / (float)4;
+		int duration_millionSeconds =( 1000 / (float)fps)*duration_frame;
+		vector<Mat> faceFrames;
+		vector<Mat> sceneFrames;
+
+		int faceCount = 0;
+		int frameIndex = 0;
+		Mat frame;
+		while (faceCount < framesToGet && frameIndex<numFrames){
+
+			/*int pos = duration_millionSeconds*frameIndex;
+			cvSetCaptureProperty(cap, CV_CAP_PROP_POS_MSEC, pos);*/
+			frame = cvQueryFrame(cap);
+
+			//todo for testing
+			char extractFrame[40];
+			sprintf(extractFrame, "./extractedframe/extracted%d.jpg", frameIndex);
+			imwrite(extractFrame, frame);
+
+			Mat detectedFaceFrame;
+
+			if (detectFace(frame, detectedFaceFrame)){
+
+				faceCount++;
+				faceFrames.push_back(detectedFaceFrame);
+
+				// resize sense pic
+				resizePic(frame, cvSize(200, 200));
+				sceneFrames.push_back(frame);
+
+
+				//todo:for testing
+				char faceFileName[40];
+				char sceneFileName[40];
+				sprintf(faceFileName, "./face/face%d.jpg", faceCount);
+				sprintf(sceneFileName, "./scene/scene%d.jpg", faceCount);
+				imwrite(faceFileName, detectedFaceFrame);
+				imwrite(sceneFileName, frame);
+			}
+
+			//skip frames duration
+			for (int i = 0; i < duration_frame; i++){
+
+				cvQueryFrame(cap);
+				frameIndex++;
+			}
+
+		}
+
+		vector<Mat> opticalFlowFrames_Face;
+		vector<Mat> opticalFlowFrames_Scene;
+
+		for (int i = 0; i < framesToGet / 2; i++){
+
+			//get optical flow map between two face image
+			Mat opticalFrame_Face;
+			getOFBetween2Frames(faceFrames[2 * i], faceFrames[2 * i + 1], opticalFrame_Face);
+			Mat gray_OpticalFace = cvCreateImage(opticalFrame_Face.size(), IPL_DEPTH_8U, 1);
+			cvtColor(opticalFrame_Face, gray_OpticalFace, CV_RGB2GRAY);
+			opticalFlowFrames_Face.push_back(gray_OpticalFace);
+
+
+			//todo:for testing
+			for (int i = 0; i < gray_OpticalFace.rows; i++){
+
+				const Vec3b* Mpoint = gray_OpticalFace.ptr <Vec3b>(i);
+				const Vec3b* Mpoint_o = opticalFrame_Face.ptr <Vec3b>(i);
+
+				for (int j = 0; j < gray_OpticalFace.cols; j++){
+
+					Vec3b intensity = *(Mpoint + j);
+					Vec3b intensity_o = *(Mpoint_o + j);
+
+					cout << "r" << (int)intensity[2] << "g" << (int)intensity[1] << "b" << (int)intensity[0] << endl;
+					cout << "r" << (int)intensity_o[2] << "g" << (int)intensity_o[1] << "b" << (int)intensity_o[0] << endl;
+				}
+			}
+
+			for (int col = 0; col < gray_OpticalFace.rows; col++)
+			{
+				for (int row = 0; row < gray_OpticalFace.cols; row++)
+				{
+					cout << (int)(*(gray_OpticalFace.data + gray_OpticalFace.step[0] * row + gray_OpticalFace.step[1] * col)) << "  ==> ";
+					//获取第[row,col]个像素点的地址并用 * 符号解析
+					//ms.tep[0]代表每一行向量的步长，m.step[0]*row代表第row行的起始地址，m.step[1]代表列的步长。
+					cout << (int)(*(gray_OpticalFace.data + gray_OpticalFace.step[0] * row + gray_OpticalFace.step[1] * col)) << endl;
+				}
+			}
+
+
+
+
+			//get optical flwo map between two scene image
+			Mat opticalFrame_Scene;
+			getOFBetween2Frames(sceneFrames[2 * i], sceneFrames[2 * i + 1], opticalFrame_Scene);
+			Mat gray_opticalScene;
+			cvtColor(opticalFrame_Scene, gray_opticalScene, CV_BGR2GRAY);
+			opticalFlowFrames_Scene.push_back(gray_opticalScene);
+
+			//todo:for testing
+			char faceOpticalFileName[40];
+			char sceneOpticalFileName[40];
+			sprintf(faceOpticalFileName, "./opticalFrame/face%d.jpg", i);
+			sprintf(sceneOpticalFileName, "./opticalFrame/scene%d.jpg", i);
+			imwrite(faceOpticalFileName, gray_OpticalFace);
+			imwrite(sceneOpticalFileName, gray_opticalScene);
+		}
+
+		Mat averageOFM_Face;
+		getAverageOFM(opticalFlowFrames_Face, averageOFM_Face);
+
+		Mat averageOFM_Scene;
+		getAverageOFM(opticalFlowFrames_Scene, averageOFM_Scene);
+
+		//todo:for testing
+		char faceOpticalAverageFileName[40];
+		char sceneOpticalAverageFileName[40];
+		sprintf(faceOpticalAverageFileName, "./opticalFrame/averageface%d.jpg", 1);
+		sprintf(sceneOpticalAverageFileName, "./opticalFrame/averagescene%d.jpg", 1);
+		imwrite(faceOpticalAverageFileName, averageOFM_Face);
+		imwrite(sceneOpticalAverageFileName, averageOFM_Scene);
+
+
+		Mat coloredMotion;
+		//getOFBetween2Frames(img1, img2, coloredMotion);
+
+		//imwrite("car.jpg", coloredMotion);
+
+	}
+	catch (const char * ex){
+
+		cout << ex << endl;
+	}
+	////cap.open(0);
+	//Mat prevgray, gray, flow, cflow, frame, grayed_motion;
+	//Mat motion2color;
+
+	////namedWindow("WMV", 1);
+	//cvNamedWindow("11", 1);
+	//CvCapture* cap = cvCaptureFromFile("Q:/CSharpProject/OpticalFlow/VID_20160418_124331.mp4");
+	////CvCapture* cap = cvCreateCameraCapture(0);
+	//int numFrames = (int)cvGetCaptureProperty(cap, CV_CAP_PROP_FRAME_COUNT);
+	//IplImage * image = NULL;
+	//while ((image = cvQueryFrame(cap)) != NULL){
+	//	double t = cvGetTickCount();
+	//	frame = Mat(image);
+	//	
+	//	cvtColor(frame, gray, CV_BGR2GRAY);
+	//	//cvShowImage("WMV", image);
+	//	char c = cvWaitKey(13);
+	//	if (prevgray.data)
+	//	{
+	//		calcOpticalFlowFarneback(prevgray, gray, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+	//		motionToColor(flow, motion2color);
+	//		cvtColor(motion2color, grayed_motion, CV_BGR2GRAY);
+	//		
+	//		try{
+
+	//			//imwrite("a.jpg", flow);
+
+	//			imshow("11", grayed_motion);
+	//		}
+	//		catch (const char*s){
+
+	//			cout << s << endl;
+	//		}
+	//	}
+
+	//	std::swap(prevgray, gray);
+
+	//	t = (double)cvGetTickCount() - t;
+	//	cout << "cost time: " << t / ((double)cvGetTickFrequency()*1000.) << endl;
+
+	//}
+	//cvReleaseCapture(&cap);
+	//cvDestroyWindow("11");
+	//return 0;
+}
